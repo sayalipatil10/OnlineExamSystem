@@ -1,0 +1,20 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build folders
+bin/
+obj/
+
+# SQL Server local db
+*.mdf
+*.ldf
+
+# Logs
+*.log
+
+# IIS Express
+.config/
