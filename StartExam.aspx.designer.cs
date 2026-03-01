@@ -7,11 +7,13 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace OnlineExamSystem {
-    
-    
-    public partial class StartExam {
-        
+namespace OnlineExamSystem
+{
+
+
+    public partial class StartExam
+    {
+
         /// <summary>
         /// form1 control.
         /// </summary>
@@ -20,7 +22,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
-        
+
         /// <summary>
         /// headerPanel1 control.
         /// </summary>
@@ -29,7 +31,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Panel headerPanel1;
-        
+
         /// <summary>
         /// Label1 control.
         /// </summary>
@@ -38,7 +40,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label Label1;
-        
+
         /// <summary>
         /// signUpPanel1 control.
         /// </summary>
@@ -47,7 +49,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Panel signUpPanel1;
-        
+
         /// <summary>
         /// homeB control.
         /// </summary>
@@ -56,7 +58,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button homeB;
-        
+
         /// <summary>
         /// profileB control.
         /// </summary>
@@ -65,7 +67,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button profileB;
-        
+
         /// <summary>
         /// LeaderboardB control.
         /// </summary>
@@ -74,7 +76,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button LeaderboardB;
-        
+
         /// <summary>
         /// logoutB control.
         /// </summary>
@@ -83,7 +85,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button logoutB;
-        
+
         /// <summary>
         /// selectCourseL control.
         /// </summary>
@@ -92,7 +94,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label selectCourseL;
-        
+
         /// <summary>
         /// SelectCourseDropDownList control.
         /// </summary>
@@ -101,7 +103,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.DropDownList SelectCourseDropDownList;
-        
+
         /// <summary>
         /// selectCourseL0 control.
         /// </summary>
@@ -110,7 +112,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label selectCourseL0;
-        
+
         /// <summary>
         /// selectExamType control.
         /// </summary>
@@ -119,7 +121,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.DropDownList selectExamType;
-        
+
         /// <summary>
         /// startB control.
         /// </summary>
@@ -128,7 +130,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button startB;
-        
+
         /// <summary>
         /// Panel3 control.
         /// </summary>
@@ -137,7 +139,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Panel Panel3;
-        
+
         /// <summary>
         /// Label2 control.
         /// </summary>
@@ -146,7 +148,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label Label2;
-        
+
         /// <summary>
         /// Label3 control.
         /// </summary>
@@ -155,7 +157,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label Label3;
-        
+
         /// <summary>
         /// GridView1 control.
         /// </summary>
@@ -164,7 +166,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.GridView GridView1;
-        
+
         /// <summary>
         /// SqlDataSource1 control.
         /// </summary>
@@ -173,7 +175,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.SqlDataSource SqlDataSource1;
-        
+
         /// <summary>
         /// GridView2 control.
         /// </summary>
@@ -182,7 +184,7 @@ namespace OnlineExamSystem {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.GridView GridView2;
-        
+
         /// <summary>
         /// SqlDataSource2 control.
         /// </summary>

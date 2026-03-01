@@ -29,7 +29,7 @@ namespace OnlineExamSystem
                 string CID = Session["_checkCID"].ToString();
 
                 // check admin queue course in empty or not
-                string CS = "your-database-connection-string";
+                string CS = WebConfigurationManager.ConnectionStrings["OnlineExamConnectionString"].ConnectionString;
                 SqlConnection con = new SqlConnection(CS);
                 con.Open();
                 SqlCommand cmd = new SqlCommand("select count(*) from theoryCourseQueue where courseID ='" + CID + "'", con);
@@ -62,22 +62,22 @@ namespace OnlineExamSystem
 
         protected void homeB_Click(object sender, EventArgs e)
         {
-            Response.Redirect("AdminPanel.aspx");
+            Server.Transfer("AdminPanel.aspx", true);
         }
 
         protected void profileB_Click(object sender, EventArgs e)
         {
-            Response.Redirect("AdminQueue.aspx");
+            Server.Transfer("AdminQueue.aspx", true);
         }
 
         protected void LeaderboardB_Click(object sender, EventArgs e)
         {
-            Response.Redirect("AdminLeaderboard.aspx");
+            Server.Transfer("AdminLeaderboard.aspx", true);
         }
 
         protected void logoutB_Click(object sender, EventArgs e)
         {
-            Response.Redirect("LoginPage.aspx");
+            Server.Transfer("LoginPage.aspx", true);
         }
 
         protected void GridView1_SelectedIndexChanged(object sender, EventArgs e)
@@ -88,7 +88,7 @@ namespace OnlineExamSystem
             Session["_stID"] = row.Cells[1].Text;
             Session["_crsID"] = row.Cells[2].Text;
 
-            Response.Redirect("ShowAns.aspx");
+            Server.Transfer("ShowAns.aspx", true);
         }
     }
 }

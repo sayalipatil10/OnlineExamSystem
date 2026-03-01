@@ -30,7 +30,7 @@ namespace OnlineExamSystem
 
                 //Response.Write(QN);
 
-                string CS = "your-database-connection-string";
+                string CS = WebConfigurationManager.ConnectionStrings["OnlineExamConnectionString"].ConnectionString;
                 SqlConnection con = new SqlConnection(CS);
                 con.Open();
                 string newcon = "select  * from theoryQS where course='" + crs + "' and qsNo ='" + QN + "'";

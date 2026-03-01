@@ -10,7 +10,7 @@ namespace OnlineExamSystem
 {
     public partial class StartExam : System.Web.UI.Page
     {
-        // ✅ Global connection string
+        // ✅ ONE GLOBAL CONNECTION STRING
         private string CS = @"Data Source=DESKTOP-I3CE4PO\SQLEXPRESS;Initial Catalog=OnlineExam;Integrated Security=True;";
 
         protected void Page_Load(object sender, EventArgs e)
@@ -44,7 +44,7 @@ namespace OnlineExamSystem
             }
         }
 
-        // ✅ Load courses based on semester
+        // ✅ Separate Method for Courses
         private void LoadCourses(string year)
         {
             SelectCourseDropDownList.Items.Clear();
@@ -90,13 +90,6 @@ namespace OnlineExamSystem
         {
             string examType = selectExamType.SelectedItem.Text;
             string course = SelectCourseDropDownList.Text;
-
-            if (examType == "Select Exam Type")
-            {
-                Response.Write("<script>alert('Please select exam type!');</script>");
-                return;
-            }
-
             Session["_Course"] = course;
             Session["_qsN"] = 1;
 

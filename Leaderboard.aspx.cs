@@ -12,30 +12,37 @@ namespace OnlineExamSystem
 {
     public partial class Leaderboard : System.Web.UI.Page
     {
+
         protected void Page_Load(object sender, EventArgs e)
         {
             if (Session["_ID"] != null)
             {
                 string ID = Session["_ID"].ToString();
-                string CS = "your-database-connection-string";
-                SqlConnection con = new SqlConnection(CS);
-                con.Open();
 
-                string newcon = "select  * from userInfo where id='" + ID + "'";
+                string CS = WebConfigurationManager
+                                .ConnectionStrings["OnlineExamConnectionString"]
+                                .ConnectionString;
 
-                SqlCommand cmd = new SqlCommand(newcon, con);
-                SqlDataReader dr = cmd.ExecuteReader();
-
-                string year = "";
-
-                if (dr.Read())
+                using (SqlConnection con = new SqlConnection(CS))
                 {
-                    year = (dr["semester"].ToString());
+                    con.Open();
+
+                    string query = "SELECT semester FROM userInfo WHERE id=@id";
+
+                    SqlCommand cmd = new SqlCommand(query, con);
+                    cmd.Parameters.AddWithValue("@id", ID);
+
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    string year = "";
+
+                    if (dr.Read())
+                    {
+                        year = dr["semester"].ToString();
+                    }
+
+                    Session["_Year"] = year;
                 }
-                con.Close();
-
-                Session["_Year"] = year;
-
             }
             else
             {

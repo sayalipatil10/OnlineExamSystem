@@ -152,7 +152,7 @@ namespace OnlineExamSystem
 
             try
             {
-                string CS = "your-database-connection-string";
+                string CS = WebConfigurationManager.ConnectionStrings["OnlineExamConnectionString"].ConnectionString;
 
                 SqlConnection con = new SqlConnection(CS);
                 con.Open();
@@ -168,7 +168,9 @@ namespace OnlineExamSystem
                 //qsNoTBox.Text = qNO;
 
                 // set question number
-                CS = "your-database-connection-string";
+                CS = WebConfigurationManager
+        .ConnectionStrings["OnlineExamConnectionString"]
+        .ConnectionString;
                 con = new SqlConnection(CS);
                 con.Open();
                 cmd = new SqlCommand("select count(*) from mcqQS where course ='" + SelectCourseDropDownList.Text + "'", con);
@@ -199,7 +201,7 @@ namespace OnlineExamSystem
 
         protected void setB_Click(object sender, EventArgs e)
         {
-            string CS = "your-database-connection-string";
+            string CS = WebConfigurationManager.ConnectionStrings["OnlineExamConnectionString"].ConnectionString;
             SqlConnection con = new SqlConnection(CS);
             con.Open();
             SqlCommand cmd = new SqlCommand("select count(*) from mcqCourseDetail where courseID ='" + SelectCourseDropDownList.Text + "'", con);

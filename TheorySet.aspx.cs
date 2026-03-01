@@ -134,9 +134,9 @@ namespace OnlineExamSystem
         }
         protected void AddQB_Click(object sender, EventArgs e)
         {
-                string CS = "your-database-connection-string";
+            string CS = WebConfigurationManager.ConnectionStrings["OnlineExamConnectionString"].ConnectionString;
 
-                SqlConnection con = new SqlConnection(CS);
+            SqlConnection con = new SqlConnection(CS);
                 con.Open();
                 string newcon = "insert into theoryQS (course,qsId,qsNo,qsA,markA,qsB,markB,eTime) VALUES('" + SelectCourseDropDownList.Text + "', '" + "null" + "', '" + qsNoTB.Text + "', '" + QATBox.Text + "', '" + markATB.Text + "', '" + QBTBox.Text + "', '" + markBTB.Text + "', '" + timeTB.Text + "')";
 
@@ -150,7 +150,9 @@ namespace OnlineExamSystem
             //qsNoTB.Text = qNO;
 
             // set question number
-            CS = "your-database-connection-string";
+            CS = WebConfigurationManager
+        .ConnectionStrings["OnlineExamConnectionString"]
+        .ConnectionString;
             con = new SqlConnection(CS);
             con.Open();
             cmd = new SqlCommand("select count(*) from theoryQS where course ='" + SelectCourseDropDownList.Text + "'", con);
@@ -177,7 +179,7 @@ namespace OnlineExamSystem
 
         protected void setB_Click(object sender, EventArgs e)
         {
-            string CS = "your-database-connection-string";
+            string CS = WebConfigurationManager.ConnectionStrings["OnlineExamConnectionString"].ConnectionString;
             SqlConnection con = new SqlConnection(CS);
             con.Open();
             SqlCommand cmd = new SqlCommand("select count(*) from theoryCourseDetail where courseID ='" + SelectCourseDropDownList.Text + "'", con);
@@ -323,7 +325,7 @@ namespace OnlineExamSystem
         protected void SelectCourseDropDownList_SelectedIndexChanged(object sender, EventArgs e)
         {
 
-            string CS = "your-database-connection-string";
+            string CS = WebConfigurationManager.ConnectionStrings["OnlineExamConnectionString"].ConnectionString;
             SqlConnection con = new SqlConnection(CS);
             con.Open();
             SqlCommand cmd = new SqlCommand("select count(*) from theoryQS where course ='" + SelectCourseDropDownList.Text + "'", con);

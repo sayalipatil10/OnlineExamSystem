@@ -20,7 +20,7 @@ namespace OnlineExamSystem
                 string cID = Session["_crsID"].ToString();
 
 
-                string CS = "your-database-connection-string";
+                string CS = WebConfigurationManager.ConnectionStrings["OnlineExamConnectionString"].ConnectionString;
                 SqlConnection con = new SqlConnection(CS);
                 con.Open();
 
@@ -215,7 +215,7 @@ namespace OnlineExamSystem
             string cID = Session["_crsID"].ToString();
 
             // update student theory course mark
-            string CS = "your-database-connection-string";
+            string CS = WebConfigurationManager.ConnectionStrings["OnlineExamConnectionString"].ConnectionString;
             SqlConnection con = new SqlConnection(CS);
             con.Open();
             string newcon = "update theoryAns set mark='" + total + "', isAprove='" + "Yes" + "' where studentID='" + sID + "' and courseID='" + cID + "';";

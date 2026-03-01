@@ -6,8 +6,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Data.SqlClient;
 using System.Data;
-using System.Web.Configuration;
-
+using System.Configuration;
 namespace OnlineExamSystem
 {
     public partial class UserProfile : System.Web.UI.Page
@@ -17,41 +16,37 @@ namespace OnlineExamSystem
             if (Session["_ID"] != null)
             {
                 string ID = Session["_ID"].ToString();
-                string CS = "Data Source=DESKTOP-JT5TE1G\\SQLEXPRESS;Initial Catalog=OnlineExam;Persist Security Info=True;User ID=sa;Password=369@saikat";
-                SqlConnection con = new SqlConnection(CS);
-                con.Open();
+                string CS = ConfigurationManager.ConnectionStrings["dbconnection"].ConnectionString;
 
-                string newcon = "select  * from userInfo where id='" + ID + "'";
-
-                SqlCommand cmd = new SqlCommand(newcon, con);
-                SqlDataReader dr = cmd.ExecuteReader();
-
-                if (dr.Read())
+                using (SqlConnection con = new SqlConnection(CS))
                 {
-                    NameTB.Text = (dr["name"].ToString());
-                    idTB.Text = (dr["id"].ToString());
-                    deptTB.Text = (dr["department"].ToString());
-                    semesterTB.Text = (dr["semester"].ToString());
-                    genderTB.Text = (dr["gender"].ToString());
-                    emailTB.Text = (dr["email"].ToString());
-                    fatherNameTB.Text = (dr["fatherName"].ToString());
-                    hallTB.Text = (dr["hall"].ToString());
-                }
-                con.Close();
+                    con.Open();
 
+                    string query = "SELECT * FROM userInfo WHERE id=@id";
+                    SqlCommand cmd = new SqlCommand(query, con);
+                    cmd.Parameters.AddWithValue("@id", ID);
+
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    if (dr.Read())
+                    {
+                        NameTB.Text = dr["name"].ToString();
+                        idTB.Text = dr["id"].ToString();
+                        deptTB.Text = dr["department"].ToString();
+                        semesterTB.Text = dr["semester"].ToString();
+                        genderTB.Text = dr["gender"].ToString();
+                        emailTB.Text = dr["email"].ToString();
+                        fatherNameTB.Text = dr["fatherName"].ToString();
+                        hallTB.Text = dr["hall"].ToString();
+                    }
+                }
             }
             else
             {
                 Response.Write("<script>alert('You are not login!');</script>");
                 Response.Redirect("LoginPage.aspx");
             }
-            //NameTB.Enabled = false;
-            //deptTB.Enabled = false;
-            //semesterTB.Enabled = false;
-            //genderTB.Enabled = false;
-            //emailTB.Enabled = false;
         }
-
         protected void homeB_Click(object sender, EventArgs e)
         {
             Response.Redirect("Dashboard.aspx");

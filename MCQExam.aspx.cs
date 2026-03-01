@@ -21,7 +21,7 @@ namespace OnlineExamSystem
             {
                 string crs = Session["_Course"].ToString();
 
-                string CS = "your-database-connection-string";
+                string CS = WebConfigurationManager.ConnectionStrings["OnlineExamConnectionString"].ConnectionString;
                 SqlConnection con = new SqlConnection(CS);
                 con.Open();
 

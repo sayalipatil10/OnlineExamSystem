@@ -31,7 +31,7 @@ namespace OnlineExamSystem
 
                 //try
                 // {
-                string CS = "your-database-connection-string";
+                string CS = WebConfigurationManager.ConnectionStrings["OnlineExamConnectionString"].ConnectionString;
                 SqlConnection con = new SqlConnection(CS);
                 con.Open();
 

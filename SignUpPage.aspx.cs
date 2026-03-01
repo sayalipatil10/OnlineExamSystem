@@ -40,8 +40,8 @@ namespace OnlineExamSystem
             {
                 try
                 {
-                    string CS = "your-database-connection-string";
-                           
+                    string CS = WebConfigurationManager.ConnectionStrings["OnlineExamConnectionString"].ConnectionString;
+
                     SqlConnection con = new SqlConnection(CS);
                     con.Open();
                     string newcon = "insert into userInfo (id,name,department,email,semester,gender,password,fatherName,hall,image,no_of_exam,total_mark) VALUES('" + idTxBox.Text + "', '" + nameTxBox.Text + "', '" + deptDropDownList.Text + "', '" + emailTxBox.Text + "', '" + semesterDropDownList.Text + "', '" + genderDropDownList.Text + "', '" + passTxBox.Text + "', '" + fatherNameTB.Text + "', '" + hallTB.Text + "', '" + link + "', '" + nEx + "', '" + tM + "')";
