@@ -1,317 +1,184 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿// FIXES APPLIED:
+//   1. BEFORE: Session["_qNo"] — session key never set anywhere => NullReferenceException crash
+//      AFTER:  Session["_qsN"] — correct key set in StartExam.aspx.cs
+//   2. BEFORE: string CS = "your-database-connection-string"; in submitB_Click (TWO places) — crash on submit
+//      AFTER:  Read from Web.config everywhere
+//   3. Used parameterized queries for all inserts
+
+using System;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Data.SqlClient;
-using System.Data;
 using System.Web.Configuration;
 
 namespace OnlineExamSystem
 {
     public partial class TheoryExam : System.Web.UI.Page
     {
+        // FIX: Single Web.config connection string — used everywhere in this file
+        private string CS => WebConfigurationManager
+                                .ConnectionStrings["OnlineExamConnectionString"]
+                                .ConnectionString;
+
         protected void Page_Load(object sender, EventArgs e)
         {
-            string ET ="";
-            if (Session["_ID"].ToString() == null)
+            if (Session["_ID"] == null)
             {
-                Response.Write("<script>alert('You are not Login Please Login First!');</script>");
+                Response.Write("<script>alert('Please login first!');</script>");
                 Response.Redirect("LoginPage.aspx");
+                return;
             }
-            else
+
+            string ET = "";
+            string crs = Session["_Course"].ToString();
+
+            // FIX: Was Session["_qNo"] — that key is never set. Correct key is "_qsN" (set in StartExam)
+            int qN = 1;
+            if (Session["_qsN"] != null)
+                qN = (int)Session["_qsN"];
+
+            using (SqlConnection con = new SqlConnection(CS))
             {
-                //RadioButtonList1.Items[0].Text = "Hello Radio Buttoin";
-                string crs = Session["_Course"].ToString();
-                int qN = (int)Session["_qNo"];
-                int qsNumber = qN;
-                string QN = qsNumber.ToString();
-
-                //Response.Write(QN);
-
-                string CS = WebConfigurationManager.ConnectionStrings["OnlineExamConnectionString"].ConnectionString;
-                SqlConnection con = new SqlConnection(CS);
                 con.Open();
-                string newcon = "select  * from theoryQS where course='" + crs + "' and qsNo ='" + QN + "'";
+                LoadTheoryQuestion(con, crs, qN.ToString(), qs1A, qs1B, m1A, m1B, ref ET);
+                LoadTheoryQuestion(con, crs, (qN + 1).ToString(), qs2A, qs2B, m2A, m2B, ref ET);
+                LoadTheoryQuestion(con, crs, (qN + 2).ToString(), qs3A, qs3B, m3A, m3B, ref ET);
+                LoadTheoryQuestion(con, crs, (qN + 3).ToString(), qs4A, qs4B, m4A, m4B, ref ET);
+                LoadTheoryQuestion(con, crs, (qN + 4).ToString(), qs5A, qs5B, m5A, m5B, ref ET);
+            }
 
-                SqlCommand cmd = new SqlCommand(newcon, con);
-                SqlDataReader dr = cmd.ExecuteReader();
-
-                if (dr.Read())
-                {
-                    qs1A.Text = (dr["qsA"].ToString());
-                    qs1B.Text = (dr["qsB"].ToString());
-                    m1A.Text = (dr["markA"].ToString());
-                    m1B.Text = (dr["markB"].ToString());
-                    ET = (dr["eTime"].ToString());
-                }
-                con.Close();
-
-                qN = qN + 1;
-                qsNumber = qN;
-                QN = qsNumber.ToString();
-
-                con.Open();
-                newcon = "select  * from theoryQS where course='" + crs + "' and qsNo ='" + QN + "'";
-                cmd = new SqlCommand(newcon, con);
-                dr = cmd.ExecuteReader();
-
-                if (dr.Read())
-                {
-                    qs2A.Text = (dr["qsA"].ToString());
-                    qs2B.Text = (dr["qsB"].ToString());
-                    m2A.Text = (dr["markA"].ToString());
-                    m2B.Text = (dr["markB"].ToString());        
-                }
-                con.Close();
-
-                qN = qN + 1;
-                qsNumber = qN;
-                QN = qsNumber.ToString();
-
-                con.Open();
-                newcon = "select  * from theoryQS where course='" + crs + "' and qsNo ='" + QN + "'";
-                cmd = new SqlCommand(newcon, con);
-                dr = cmd.ExecuteReader();
-                if (dr.Read())
-                {
-                    qs3A.Text = (dr["qsA"].ToString());
-                    qs3B.Text = (dr["qsB"].ToString());
-                    m3A.Text = (dr["markA"].ToString());
-                    m3B.Text = (dr["markB"].ToString());                    
-                }
-                con.Close();
-
-                qN = qN + 1;
-                qsNumber = qN;
-                QN = qsNumber.ToString();
-
-                con.Open();
-                newcon = "select  * from theoryQS where course='" + crs + "' and qsNo ='" + QN + "'";
-                cmd = new SqlCommand(newcon, con);
-                dr = cmd.ExecuteReader();
-                if (dr.Read())
-                {
-                    qs4A.Text = (dr["qsA"].ToString());
-                    qs4B.Text = (dr["qsB"].ToString());
-                    m4A.Text = (dr["markA"].ToString());
-                    m4B.Text = (dr["markB"].ToString());
-                }
-                con.Close();
-
-                qN = qN + 1;
-                qsNumber = qN;
-                QN = qsNumber.ToString();
-
-                con.Open();
-                newcon = "select  * from theoryQS where course='" + crs + "' and qsNo ='" + QN + "'";
-                cmd = new SqlCommand(newcon, con);
-                dr = cmd.ExecuteReader();
-                if (dr.Read())
-                {
-                    qs5A.Text = (dr["qsA"].ToString());
-                    qs5B.Text = (dr["qsB"].ToString());
-                    m5A.Text = (dr["markA"].ToString());
-                    m5B.Text = (dr["markB"].ToString());
-                }
-                con.Close();
-
-                if (!IsPostBack)
-                {
-                    //Response.Write(ET);
-                    int examTime;
-                    int.TryParse(ET, out examTime);
-
-                    Session["Timer"] = DateTime.Now.AddMinutes(examTime).ToString();
-                }
-
+            if (!IsPostBack)
+            {
+                int examTime = 30;
+                int.TryParse(ET, out examTime);
+                if (examTime <= 0) examTime = 30;
+                Session["Timer"] = DateTime.Now.AddMinutes(examTime).ToString();
             }
         }
 
-        protected string getCourseName(string courseID)
+        private void LoadTheoryQuestion(SqlConnection con, string course, string qsNo,
+            Label labelA, Label labelB, Label markA, Label markB, ref string ET)
         {
-            string cName = "Course Name";
+            // Reopen if closed
+            if (con.State == System.Data.ConnectionState.Closed) con.Open();
 
-            if(courseID == "CSE-1101")
-            {
-                cName = "Computer Basics & Programming Fundamentals";
-            }
-            else if(courseID == "CSE-1201")
-            {
-                cName = "Electronic Devices and Circuits";
-            }
-            else if (courseID == "CSE-2101")
-            {
-                cName = "Object Oriented Programming";
-            }
-            else if (courseID == "CSE-2201")
-            {
-                cName = "Algorithm Design & Analysis";
-            }
-            else if (courseID == "CSE-3101")
-            {
-                cName = "Operating System";
-            }
-            else if (courseID == "CSE-3201")
-            {
-                cName = "Compiler Design";
-            }
-            else if (courseID == "CSE-4101")
-            {
-                cName = "Artificial Intelligence & ExpertSystem";
-            }
-            else if (courseID == "CSE-4201")
-            {
-                cName = "Computer Graphics & Animation";
-            }
+            SqlCommand cmd = new SqlCommand(
+                "SELECT * FROM theoryQS WHERE course=@course AND qsNo=@qsNo", con);
+            cmd.Parameters.AddWithValue("@course", course);
+            cmd.Parameters.AddWithValue("@qsNo", qsNo);
 
-            return cName;
-        }
-
-        protected void homeB_Click(object sender, EventArgs e)
-        {
-            Response.Redirect("Dashboard.aspx");
-        }
-
-        protected void profileB_Click(object sender, EventArgs e)
-        {
-            Response.Redirect("UserProfile.aspx");
-        }
-
-        protected void LeaderboardB_Click(object sender, EventArgs e)
-        {
-            Response.Redirect("Leaderboard.aspx");
+            SqlDataReader dr = cmd.ExecuteReader();
+            if (dr.Read())
+            {
+                labelA.Text = dr["qsA"].ToString();
+                labelB.Text = dr["qsB"].ToString();
+                markA.Text = dr["markA"].ToString();
+                markB.Text = dr["markB"].ToString();
+                if (!string.IsNullOrEmpty(dr["eTime"].ToString()))
+                    ET = dr["eTime"].ToString();
+            }
+            dr.Close();
         }
 
         protected void submitB_Click(object sender, EventArgs e)
         {
-
-            // store the answersheet in database store
-
             string stID = Session["_ID"].ToString();
             string crsID = Session["_Course"].ToString();
 
-                string CS = "your-database-connection-string";
-
-                SqlConnection con = new SqlConnection(CS);
+            // FIX: Was "your-database-connection-string" (TWO places) — now Web.config
+            using (SqlConnection con = new SqlConnection(CS))
+            {
                 con.Open();
-                string newcon = "insert into theoryAns (studentID,courseID,qsNo,qsA,ansA,markA,isAprove,qsB,markB,ansB) VALUES('" + stID + "', '" + crsID + "', '" + "1" + "', '" + qs1A.Text + "', '" + ans1ATB.Text + "', '" + m1A.Text + "','" + "No" + "', '" + qs1B.Text + "', '" + m1B.Text + "' ,'" + ans1BTB.Text + "')";
 
-                SqlCommand cmd = new SqlCommand(newcon, con);
+                // Insert 5 theory answer rows
+                InsertTheoryAns(con, stID, crsID, "1", qs1A.Text, ans1ATB.Text, m1A.Text, qs1B.Text, m1B.Text, ans1BTB.Text);
+                InsertTheoryAns(con, stID, crsID, "2", qs2A.Text, ans2ATB.Text, m2A.Text, qs2B.Text, m2B.Text, ans2BTB.Text);
+                InsertTheoryAns(con, stID, crsID, "3", qs3A.Text, ans3ATB.Text, m3A.Text, qs3B.Text, m3B.Text, ans3BTB.Text);
+                InsertTheoryAns(con, stID, crsID, "4", qs4A.Text, ans4ATB.Text, m4A.Text, qs4B.Text, m4B.Text, ans4BTB.Text);
+                InsertTheoryAns(con, stID, crsID, "5", qs5A.Text, ans5ATB.Text, m5A.Text, qs5B.Text, m5B.Text, ans5BTB.Text);
+
+                // Add to admin course queue (student pending grading)
+                SqlCommand cmd = new SqlCommand(
+                    "INSERT INTO theoryCourseQueue (student_ID, courseID) VALUES (@sID, @cID)", con);
+                cmd.Parameters.AddWithValue("@sID", stID);
+                cmd.Parameters.AddWithValue("@cID", crsID);
                 cmd.ExecuteNonQuery();
-                con.Close();
 
-
-                con.Open();
-                newcon = "insert into theoryAns (studentID,courseID,qsNo,qsA,ansA,markA,isAprove,qsB,markB,ansB) VALUES('" + stID + "', '" + crsID + "', '" + "2" + "', '" + qs2A.Text + "', '" + ans2ATB.Text + "', '" + m2A.Text + "','" + "No" + "', '" + qs2B.Text + "', '" + m2B.Text + "' ,'" + ans2BTB.Text + "')";
-
-                cmd = new SqlCommand(newcon, con);
+                // Add to admin visible queue
+                string courseName = GetCourseName(crsID);
+                cmd = new SqlCommand(
+                    "INSERT INTO theoryQueue (courseID, courseName) VALUES (@cID, @cName)", con);
+                cmd.Parameters.AddWithValue("@cID", crsID);
+                cmd.Parameters.AddWithValue("@cName", courseName);
                 cmd.ExecuteNonQuery();
-                con.Close();
 
-
-                con.Open();
-                newcon = "insert into theoryAns (studentID,courseID,qsNo,qsA,ansA,markA,isAprove,qsB,markB,ansB) VALUES('" + stID + "', '" + crsID + "', '" + "3" + "', '" + qs3A.Text + "', '" + ans3ATB.Text + "', '" + m3A.Text + "','" + "No" + "', '" + qs3B.Text + "', '" + m3B.Text + "' ,'" + ans3BTB.Text + "')";
-
-                cmd = new SqlCommand(newcon, con);
+                // Record in taken courses
+                cmd = new SqlCommand(
+                    "INSERT INTO theoryTaken (studentID, courseID, examNo) VALUES (@sID, @cID, @eNo)", con);
+                cmd.Parameters.AddWithValue("@sID", stID);
+                cmd.Parameters.AddWithValue("@cID", crsID);
+                cmd.Parameters.AddWithValue("@eNo", "1");
                 cmd.ExecuteNonQuery();
-                con.Close();
+            }
 
-                con.Open();
-                newcon = "insert into theoryAns (studentID,courseID,qsNo,qsA,ansA,markA,isAprove,qsB,markB,ansB) VALUES('" + stID + "', '" + crsID + "', '" + "4" + "', '" + qs4A.Text + "', '" + ans4ATB.Text + "', '" + m4A.Text + "','" + "No" + "', '" + qs4B.Text + "', '" + m4B.Text + "' ,'" + ans4BTB.Text + "')";
-
-                cmd = new SqlCommand(newcon, con);
-                cmd.ExecuteNonQuery();
-                con.Close();
-
-                con.Open();
-                newcon = "insert into theoryAns (studentID,courseID,qsNo,qsA,ansA,markA,isAprove,qsB,markB,ansB) VALUES('" + stID + "', '" + crsID + "', '" + "5" + "', '" + qs5A.Text + "', '" + ans5ATB.Text + "', '" + m5A.Text + "','" + "No" + "', '" + qs5B.Text + "', '" + m5B.Text + "' ,'" + ans5BTB.Text + "')";
-
-                cmd = new SqlCommand(newcon, con);
-                cmd.ExecuteNonQuery();
-                con.Close();
-
-                // insert data in theory course queue database
-                con.Open();
-                newcon = "insert into theoryCourseQueue (student_ID,courseID) VALUES('" + stID + "', '" + crsID + "')";
-
-                cmd = new SqlCommand(newcon, con);
-                cmd.ExecuteNonQuery();
-                con.Close();
-
-
-                // insert the data in admin queue database 
-                string courseNAME = getCourseName(crsID);
-                con.Open();
-                newcon = "insert into theoryQueue (courseID, courseName) VALUES('" + crsID + "', '" + courseNAME + "')";
-                cmd = new SqlCommand(newcon, con);
-                cmd.ExecuteNonQuery();
-                con.Close();
-
-
-            // increase the count value in admin queue
-
-            /*
-            // check for admin queue is empty or not
-            con = new SqlConnection(CS);
-            con.Open();
-            cmd = new SqlCommand("select count(*) from theoryQueue where courseID ='" + crsID + "'", con);
-            SqlDataAdapter sda = new SqlDataAdapter(cmd);
-            DataTable dt = new DataTable();
-            sda.Fill(dt);
-            cmd.ExecuteNonQuery();
-
-            string str = dt.Rows[0][0].ToString();
-
-            int cnt;
-            int.TryParse(str, out cnt);
-
-            cnt = cnt + 1;
-
-            // insert the data in admin queue database 
-            con.Open();
-            newcon = "insert into theoryQueue (courseID, courseName,count) VALUES('" + crsID + "', '"+ courseNAME + "', '" + cnt.ToString() + "')";
-            cmd = new SqlCommand(newcon, con);
-            cmd.ExecuteNonQuery();
-            con.Close();
-            */
-            
-            // insert taken course database
-            string sNo = Session["_ID"].ToString();
-            string crsNo = Session["_Course"].ToString();
-            string eN = "1";  // it need update
-
-            CS = "your-database-connection-string";
-            con = new SqlConnection(CS);
-            con.Open();
-            newcon = "insert into theoryTaken (studentID,courseID,examNo) VALUES('" + sNo + "','" + crsNo + "', '" + eN + "')";
-            cmd = new SqlCommand(newcon, con);
-            cmd.ExecuteNonQuery();
-            con.Close();
-
-            Response.Write("<script>alert('Your Answer Sheet Submited!');</script>");
+            Response.Write("<script>alert('Your Answer Sheet Submitted!');</script>");
             Response.Redirect("Dashboard.aspx");
-
         }
 
-        protected void logoutB_Click(object sender, EventArgs e)
+        private void InsertTheoryAns(SqlConnection con, string stID, string crsID, string qsNo,
+            string qsA, string ansA, string markA, string qsB, string markB, string ansB)
         {
-            Response.Redirect("LoginPage.aspx");
+            SqlCommand cmd = new SqlCommand(@"
+                INSERT INTO theoryAns (studentID, courseID, qsNo, qsA, ansA, markA, isAprove, qsB, markB, ansB)
+                VALUES (@sID, @cID, @qsNo, @qsA, @ansA, @markA, 'No', @qsB, @markB, @ansB)", con);
+
+            cmd.Parameters.AddWithValue("@sID", stID);
+            cmd.Parameters.AddWithValue("@cID", crsID);
+            cmd.Parameters.AddWithValue("@qsNo", qsNo);
+            cmd.Parameters.AddWithValue("@qsA", qsA);
+            cmd.Parameters.AddWithValue("@ansA", ansA);
+            cmd.Parameters.AddWithValue("@markA", markA);
+            cmd.Parameters.AddWithValue("@qsB", qsB);
+            cmd.Parameters.AddWithValue("@markB", markB);
+            cmd.Parameters.AddWithValue("@ansB", ansB);
+            cmd.ExecuteNonQuery();
+        }
+
+        private string GetCourseName(string courseID)
+        {
+            switch (courseID)
+            {
+                case "CSE-1101": return "Computer Basics & Programming Fundamentals";
+                case "CSE-1201": return "Electronic Devices and Circuits";
+                case "CSE-2101": return "Object Oriented Programming";
+                case "CSE-2201": return "Algorithm Design & Analysis";
+                case "CSE-3101": return "Operating System";
+                case "CSE-3201": return "Compiler Design";
+                case "CSE-4101": return "Artificial Intelligence & Expert System";
+                case "CSE-4201": return "Computer Graphics & Animation";
+                default: return courseID;
+            }
         }
 
         protected void Timer1_Tick(object sender, EventArgs e)
         {
-            if (DateTime.Compare(DateTime.Now, DateTime.Parse(Session["Timer"].ToString())) < 0)
+            if (Session["Timer"] == null) return;
+
+            DateTime endTime = DateTime.Parse(Session["Timer"].ToString());
+            if (DateTime.Compare(DateTime.Now, endTime) < 0)
             {
-                Label3.Text = "Time Left : " + ((Int32)DateTime.Parse(Session["Timer"].ToString()).Subtract(DateTime.Now).TotalMinutes).ToString() + " Minute " + (((Int32)DateTime.Parse(Session["Timer"].ToString()).Subtract(DateTime.Now).TotalSeconds) % 60).ToString() + " Seconds";
+                TimeSpan remaining = endTime.Subtract(DateTime.Now);
+                Label3.Text = "Time Left: " + (int)remaining.TotalMinutes + " min " + remaining.Seconds + " sec";
             }
             else
             {
                 Label3.Text = "Time Out!";
-                //UpdatePanel1.Enabled = false;
-                //Response.Write("<script>alert('Time Finish!');</script>");
             }
         }
+
+        protected void homeB_Click(object sender, EventArgs e) { Response.Redirect("Dashboard.aspx"); }
+        protected void profileB_Click(object sender, EventArgs e) { Response.Redirect("UserProfile.aspx"); }
+        protected void LeaderboardB_Click(object sender, EventArgs e) { Response.Redirect("Leaderboard.aspx"); }
+        protected void logoutB_Click(object sender, EventArgs e) { Response.Redirect("LoginPage.aspx"); }
     }
 }

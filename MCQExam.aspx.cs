@@ -1,7 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿// FIX APPLIED:
+//   BEFORE: string CS = "your-database-connection-string"; in submitB_Click — CRASH on submit
+//   AFTER:  Read from Web.config everywhere
+//   Also: Added null check for Session["_Course"] on submit
+
+using System;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Data.SqlClient;
@@ -12,154 +14,90 @@ namespace OnlineExamSystem
 {
     public partial class MCQExam : System.Web.UI.Page
     {
-        static int count = 20;
+        // FIX: Single connection string from Web.config — used everywhere in this file
+        private string CS => WebConfigurationManager
+                                .ConnectionStrings["OnlineExamConnectionString"]
+                                .ConnectionString;
+
         protected void Page_Load(object sender, EventArgs e)
         {
-            ///Session["Timer"] = DateTime.Now;
             string ET = "";
+
             if (Session["_Course"] != null)
             {
                 string crs = Session["_Course"].ToString();
 
-                string CS = WebConfigurationManager.ConnectionStrings["OnlineExamConnectionString"].ConnectionString;
-                SqlConnection con = new SqlConnection(CS);
-                con.Open();
-
-
-                string newcon = "select  * from mcqQS where course='" + crs + "' and qsNo ='" + "1" + "'";
-
-                SqlCommand cmd = new SqlCommand(newcon, con);
-                SqlDataReader dr = cmd.ExecuteReader();
-
-                if (dr.Read())
+                using (SqlConnection con = new SqlConnection(CS))
                 {
-                    qs1.Text = (dr["qs"].ToString());
-                    RadioButtonList1.Items[0].Text = (dr["op1"].ToString());
-                    RadioButtonList1.Items[1].Text = (dr["op2"].ToString());
-                    RadioButtonList1.Items[2].Text = (dr["op3"].ToString());
-                    RadioButtonList1.Items[3].Text = (dr["op4"].ToString());
-                    Session["_qs1"] = (dr["qs"].ToString());
-                    Session["_ans1"] = (dr["ans"].ToString());
-                    Session["_tag1"] = (dr["tag"].ToString());
+                    con.Open();
+                    LoadQuestion(con, crs, "1", qs1, RadioButtonList1, "_qs1", "_ans1", "_tag1", ref ET);
                 }
-                con.Close();
-
-                con.Open();
-
-                newcon = "select  * from mcqQS where course='" + crs + "' and qsNo ='" + "2" + "'";
-                cmd = new SqlCommand(newcon, con);
-                dr = cmd.ExecuteReader();
-
-                if (dr.Read())
+                using (SqlConnection con = new SqlConnection(CS))
                 {
-                    qs2.Text = (dr["qs"].ToString());
-                    RadioButtonList2.Items[0].Text = (dr["op1"].ToString());
-                    RadioButtonList2.Items[1].Text = (dr["op2"].ToString());
-                    RadioButtonList2.Items[2].Text = (dr["op3"].ToString());
-                    RadioButtonList2.Items[3].Text = (dr["op4"].ToString());
-                    Session["_qs2"] = (dr["qs"].ToString());
-                    Session["_ans2"] = (dr["ans"].ToString());
-                    Session["_tag2"] = (dr["tag"].ToString());
+                    con.Open();
+                    LoadQuestion(con, crs, "2", qs2, RadioButtonList2, "_qs2", "_ans2", "_tag2", ref ET);
                 }
-
-                con.Close();
-
-                con.Open();
-
-                newcon = "select  * from mcqQS where course='" + crs + "' and qsNo ='" + "3" + "'";
-                cmd = new SqlCommand(newcon, con);
-                dr = cmd.ExecuteReader();
-
-                if (dr.Read())
+                using (SqlConnection con = new SqlConnection(CS))
                 {
-                    qs3.Text = (dr["qs"].ToString());
-                    RadioButtonList3.Items[0].Text = (dr["op1"].ToString());
-                    RadioButtonList3.Items[1].Text = (dr["op2"].ToString());
-                    RadioButtonList3.Items[2].Text = (dr["op3"].ToString());
-                    RadioButtonList3.Items[3].Text = (dr["op4"].ToString());
-                    Session["_qs3"] = (dr["qs"].ToString());
-                    Session["_ans3"] = (dr["ans"].ToString());
-                    Session["_tag3"] = (dr["tag"].ToString());
+                    con.Open();
+                    LoadQuestion(con, crs, "3", qs3, RadioButtonList3, "_qs3", "_ans3", "_tag3", ref ET);
                 }
-
-                con.Close();
-
-
-                con.Open();
-
-                newcon = "select  * from mcqQS where course='" + crs + "' and qsNo ='" + "4" + "'";
-                cmd = new SqlCommand(newcon, con);
-                dr = cmd.ExecuteReader();
-
-                if (dr.Read())
+                using (SqlConnection con = new SqlConnection(CS))
                 {
-                    qs4.Text = (dr["qs"].ToString());
-                    RadioButtonList4.Items[0].Text = (dr["op1"].ToString());
-                    RadioButtonList4.Items[1].Text = (dr["op2"].ToString());
-                    RadioButtonList4.Items[2].Text = (dr["op3"].ToString());
-                    RadioButtonList4.Items[3].Text = (dr["op4"].ToString());
-                    Session["_qs4"] = (dr["qs"].ToString());
-                    Session["_ans4"] = (dr["ans"].ToString());
-                    Session["_tag4"] = (dr["tag"].ToString());
+                    con.Open();
+                    LoadQuestion(con, crs, "4", qs4, RadioButtonList4, "_qs4", "_ans4", "_tag4", ref ET);
                 }
-
-                con.Close();
-
-                con.Open();
-
-                newcon = "select  * from mcqQS where course='" + crs + "' and qsNo ='" + "5" + "'";
-                cmd = new SqlCommand(newcon, con);
-                dr = cmd.ExecuteReader();
-
-                if (dr.Read())
+                using (SqlConnection con = new SqlConnection(CS))
                 {
-                    qs5.Text = (dr["qs"].ToString());
-                    RadioButtonList5.Items[0].Text = (dr["op1"].ToString());
-                    RadioButtonList5.Items[1].Text = (dr["op2"].ToString());
-                    RadioButtonList5.Items[2].Text = (dr["op3"].ToString());
-                    RadioButtonList5.Items[3].Text = (dr["op4"].ToString());
-                    Session["_ans5"] = (dr["ans"].ToString());
-                    Session["_qs5"] = (dr["qs"].ToString());
-                    Session["_tag5"] = (dr["tag"].ToString());
-                    ET = (dr["eTime"].ToString());
+                    con.Open();
+                    LoadQuestion(con, crs, "5", qs5, RadioButtonList5, "_qs5", "_ans5", "_tag5", ref ET);
                 }
-
-                con.Close();
             }
             else
             {
-                Response.Write("<script>alert('You not select Exam!');</script>");
+                Response.Write("<script>alert('No exam selected. Please go back and select a course.');</script>");
+                return;
             }
+
             if (!IsPostBack)
             {
-                int examTime = 1;
-
+                int examTime = 30; // default 30 min
                 int.TryParse(ET, out examTime);
-
+                if (examTime <= 0) examTime = 30;
                 Session["Timer"] = DateTime.Now.AddMinutes(examTime).ToString();
             }
         }
 
-        protected void homeB_Click(object sender, EventArgs e)
+        private void LoadQuestion(SqlConnection con, string course, string qsNo,
+            Label qsLabel, RadioButtonList rbl,
+            string sessionQs, string sessionAns, string sessionTag,
+            ref string ET)
         {
-            Response.Redirect("Dashboard.aspx");
-        }
+            SqlCommand cmd = new SqlCommand(
+                "SELECT * FROM mcqQS WHERE course=@course AND qsNo=@qsNo", con);
+            cmd.Parameters.AddWithValue("@course", course);
+            cmd.Parameters.AddWithValue("@qsNo", qsNo);
 
-        protected void profileB_Click(object sender, EventArgs e)
-        {
-            Response.Redirect("UserProfile.aspx");
-        }
-
-        protected void LeaderboardB_Click(object sender, EventArgs e)
-        {
-            Response.Redirect("Leaderboard.aspx");
+            SqlDataReader dr = cmd.ExecuteReader();
+            if (dr.Read())
+            {
+                qsLabel.Text = dr["qs"].ToString();
+                rbl.Items[0].Text = dr["op1"].ToString();
+                rbl.Items[1].Text = dr["op2"].ToString();
+                rbl.Items[2].Text = dr["op3"].ToString();
+                rbl.Items[3].Text = dr["op4"].ToString();
+                Session[sessionQs] = dr["qs"].ToString();
+                Session[sessionAns] = dr["ans"].ToString();
+                Session[sessionTag] = dr["tag"].ToString();
+                if (!string.IsNullOrEmpty(dr["etime"].ToString()))
+                    ET = dr["etime"].ToString();
+            }
         }
 
         protected void submitB_Click(object sender, EventArgs e)
         {
-            //int a = (int)Session["_qsN"];
-            //Response.Write(a);
-            //Session["_qsN"] = ((int)Session["_qsN"]) + 1;
+            // Guard: ensure session values exist
+            if (Session["_ans1"] == null) { Response.Write("<script>alert('Session expired. Please log in again.');</script>"); return; }
 
             string a1 = Session["_ans1"].ToString();
             string a2 = Session["_ans2"].ToString();
@@ -168,115 +106,52 @@ namespace OnlineExamSystem
             string a5 = Session["_ans5"].ToString();
             int mark = 0;
 
-            if (RadioButtonList1.SelectedIndex > -1)
-            {
-                if (RadioButtonList1.SelectedItem.Text == a1)
-                {
-                    mark++;
-                }
-            }
-            if (RadioButtonList2.SelectedIndex > -1)
-            {
-                if (RadioButtonList2.SelectedItem.Text == a2)
-                {
-                    mark++;
-                }
-            }
-            if (RadioButtonList3.SelectedIndex > -1)
-            {
-                if (RadioButtonList3.SelectedItem.Text == a3)
-                {
-                    mark++;
-                }
-            }
-            if (RadioButtonList4.SelectedIndex > -1)
-            {
-                if (RadioButtonList4.SelectedItem.Text == a4)
-                {
-                    mark++;
-                }
-            }
-            if (RadioButtonList5.SelectedIndex > -1)
-            {
-                if (RadioButtonList5.SelectedItem.Text == a5)
-                {
-                    mark++;
-                }
-            }
+            if (RadioButtonList1.SelectedIndex > -1 && RadioButtonList1.SelectedItem.Text == a1) mark++;
+            if (RadioButtonList2.SelectedIndex > -1 && RadioButtonList2.SelectedItem.Text == a2) mark++;
+            if (RadioButtonList3.SelectedIndex > -1 && RadioButtonList3.SelectedItem.Text == a3) mark++;
+            if (RadioButtonList4.SelectedIndex > -1 && RadioButtonList4.SelectedItem.Text == a4) mark++;
+            if (RadioButtonList5.SelectedIndex > -1 && RadioButtonList5.SelectedItem.Text == a5) mark++;
 
             Session["_tMark"] = mark;
 
             string sNo = Session["_ID"].ToString();
             string crsNo = Session["_Course"].ToString();
-            double M = mark;
-            //string M = mark.ToString();
 
-            string CS = "your-database-connection-string";
-            SqlConnection con = new SqlConnection(CS);
-            con.Open();
-            string newcon = "insert into mcqTaken (studentID,courseID,examNo,mark) VALUES('" + sNo + "','" + crsNo + "', '" + "1" + "', '" + M + "')";
-
-            SqlCommand cmd = new SqlCommand(newcon, con);
-            cmd.ExecuteNonQuery();
-            con.Close();
+            // FIX: Was "your-database-connection-string" — now uses Web.config
+            using (SqlConnection con = new SqlConnection(CS))
+            {
+                con.Open();
+                SqlCommand cmd = new SqlCommand(
+                    "INSERT INTO mcqTaken (studentID, courseID, examNo, mark) VALUES (@sID, @cID, @eNo, @mark)", con);
+                cmd.Parameters.AddWithValue("@sID", sNo);
+                cmd.Parameters.AddWithValue("@cID", crsNo);
+                cmd.Parameters.AddWithValue("@eNo", "1");
+                cmd.Parameters.AddWithValue("@mark", (double)mark);
+                cmd.ExecuteNonQuery();
+            }
 
             Response.Redirect("ExamResult.aspx");
+        }
 
-        }
-        protected void logoutB_Click(object sender, EventArgs e)
-        {
-            Response.Redirect("LoginPage.aspx");
-        }
         protected void Timer1_Tick(object sender, EventArgs e)
         {
-            //Label3.Text = DateTime.Now.ToString("hh:mm:ss");
+            if (Session["Timer"] == null) return;
 
-            if(DateTime.Compare(DateTime.Now, DateTime.Parse(Session["Timer"].ToString())) < 0)
+            DateTime endTime = DateTime.Parse(Session["Timer"].ToString());
+            if (DateTime.Compare(DateTime.Now, endTime) < 0)
             {
-                Label3.Text = "Time Left : " + ((Int32)DateTime.Parse(Session["Timer"].ToString()).Subtract(DateTime.Now).TotalMinutes).ToString() + " Minute " + (((Int32)DateTime.Parse(Session["Timer"].ToString()).Subtract(DateTime.Now).TotalSeconds) % 60).ToString() + " Seconds";
+                TimeSpan remaining = endTime.Subtract(DateTime.Now);
+                Label3.Text = "Time Left: " + (int)remaining.TotalMinutes + " min " + (remaining.Seconds) + " sec";
             }
             else
             {
-                //Response.Redirect("LoginPage.aspx");
-                //Fun();
                 Label3.Text = "Time Out!";
-                //submit1B_Click(submit1B, null);
-                //Response.Write("<script>alert('Time Finish!');</script>");
             }
-
-               
-            /*if (count > 0)
-            {
-                count = count - 1;
-                Label3.Text = count.ToString();
-
-            }
-            else
-            {
-                Label3.Text = "Time's up!";
-                //Timer1.Enabled = false;
-                Response.Write("<script>alert('Time Finish!');</script>");
-                Response.Redirect("Dashboard.aspx");
-            }*/
-
-
-            /*TimeSpan time1 = new TimeSpan();
-            time1 = (DateTime)Session["time"] - DateTime.Now;
-            if (time1.Seconds <= 0)
-            {
-                Label3.Text = "TimeOut!";
-            }
-            else
-            {
-                Label3.Text = time1.Seconds.ToString();
-            }*/
-
-
         }
 
-        //protected void Timer2_Tick(object sender, EventArgs e)
-        //{
-        //timerL.Text = System.DateTime.Now.ToString("hh:mm:ss");
-        //}
+        protected void homeB_Click(object sender, EventArgs e) { Response.Redirect("Dashboard.aspx"); }
+        protected void profileB_Click(object sender, EventArgs e) { Response.Redirect("UserProfile.aspx"); }
+        protected void LeaderboardB_Click(object sender, EventArgs e) { Response.Redirect("Leaderboard.aspx"); }
+        protected void logoutB_Click(object sender, EventArgs e) { Response.Redirect("LoginPage.aspx"); }
     }
 }

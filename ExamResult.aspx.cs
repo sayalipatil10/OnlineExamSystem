@@ -1,143 +1,104 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿// FIXES APPLIED:
+//   1. BEFORE: cmd1.ExecuteReader() used for an UPDATE query — should be ExecuteNonQuery()
+//      AFTER:  cmd1.ExecuteNonQuery()
+//   2. Added null checks for all Session values before accessing them
+//   3. Wrapped DB operations in try/catch
+
+using System;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Data.SqlClient;
-using System.Data;
 using System.Web.Configuration;
 
 namespace OnlineExamSystem
 {
     public partial class ExamResult : System.Web.UI.Page
     {
+        private string CS => WebConfigurationManager
+                                .ConnectionStrings["OnlineExamConnectionString"]
+                                .ConnectionString;
+
         protected void Page_Load(object sender, EventArgs e)
         {
-
-            markLabel.Text = Session["_tMark"].ToString();
-
-
-            int num = (int)(Session["_tMark"]);
-
-            int noOfExam, a=0;
-            double totalMark, b=0.0;
-
-            if (Session["_ID"] != null)
+            if (Session["_ID"] == null || Session["_tMark"] == null)
             {
-                string ID = Session["_ID"].ToString();
+                Response.Write("<script>alert('Session expired. Please login again.');</script>");
+                Response.Redirect("LoginPage.aspx");
+                return;
+            }
 
+            int mark = (int)Session["_tMark"];
+            markLabel.Text = mark.ToString();
 
+            string ID = Session["_ID"].ToString();
 
-                //try
-                // {
-                string CS = WebConfigurationManager.ConnectionStrings["OnlineExamConnectionString"].ConnectionString;
-                SqlConnection con = new SqlConnection(CS);
-                con.Open();
+            try
+            {
+                int noOfExam = 0;
+                double totalMark = 0.0;
 
-                string newcon = "select * from userInfo where id='" + ID + "'";
-
-                SqlCommand cmd = new SqlCommand(newcon, con);
-                SqlDataReader dr = cmd.ExecuteReader();
-
-                if (dr.Read())
+                // Step 1: Read existing stats
+                using (SqlConnection con = new SqlConnection(CS))
                 {
-                    a = (int)(dr["no_of_exam"]);
-                    b = (double)(dr["total_mark"]);
-                    //Response.Write(a);
-                    //Response.Write(b);
+                    con.Open();
+                    SqlCommand cmd = new SqlCommand(
+                        "SELECT no_of_exam, total_mark FROM userInfo WHERE id=@id", con);
+                    cmd.Parameters.AddWithValue("@id", ID);
 
-                    //noOfExam = ;
-
+                    SqlDataReader dr = cmd.ExecuteReader();
+                    if (dr.Read())
+                    {
+                        noOfExam = Convert.ToInt32(dr["no_of_exam"]);
+                        totalMark = Convert.ToDouble(dr["total_mark"]);
+                    }
                 }
-                con.Close();
-                //}
-                // catch (Exception ex)
-                // {
-                //MessageBox.Show(ex.Message);
-                //  }
 
-                //Response.Write(a);
-                //Response.Write(b);
+                // Step 2: Calculate new stats
+                totalMark = totalMark + (double)mark;
+                noOfExam = noOfExam + 1;
+                double avg = totalMark / (double)noOfExam;
 
-                totalMark = b + (double)num;
-
-                noOfExam = a + 1;
-
-                //Response.Write(noOfExam);
-                //Response.Write(totalMark);
-
-
-                double Avg = totalMark / (double)noOfExam;
-
-                string av = Avg.ToString();
-
-                //try
-                //{
-                //CS = "your-database-connection-string";
-                SqlConnection con1 = new SqlConnection(CS);
-                con1.Open();
-
-                string newcon1 = "update userInfo set no_of_exam='" + noOfExam + "', total_mark='" + totalMark + "', abc='" + av + "' where id='" + ID + "';";
-
-                SqlCommand cmd1 = new SqlCommand(newcon1, con1);
-
-                SqlDataReader dr1 = cmd1.ExecuteReader();
-
-                con1.Close();
-                // }
-                //catch (Exception ex)
-                // {
-                //MessageBox.Show(ex.Message);
-                //  }
-
-
-
-
-
-                qs1.Text = Session["_qs1"].ToString();
-                qs2.Text = Session["_qs2"].ToString();
-                qs3.Text = Session["_qs3"].ToString();
-                qs4.Text = Session["_qs4"].ToString();
-                qs5.Text = Session["_qs5"].ToString();
-
-                tag1.Text = "(" + Session["_tag1"].ToString() + ")";
-                tag2.Text = "(" + Session["_tag2"].ToString() + ")";
-                tag3.Text = "(" + Session["_tag3"].ToString() + ")";
-                tag4.Text = "(" + Session["_tag4"].ToString() + ")";
-                tag5.Text = "(" + Session["_tag5"].ToString() + ")";
-
-
-                ans1.Text = Session["_ans1"].ToString();
-                ans2.Text = Session["_ans2"].ToString();
-                ans3.Text = Session["_ans3"].ToString();
-                ans4.Text = Session["_ans4"].ToString();
-                ans5.Text = Session["_ans5"].ToString();
+                // FIX: Was SqlDataReader on UPDATE — must be ExecuteNonQuery()
+                using (SqlConnection con1 = new SqlConnection(CS))
+                {
+                    con1.Open();
+                    SqlCommand cmd1 = new SqlCommand(
+                        "UPDATE userInfo SET no_of_exam=@nEx, total_mark=@tM, abc=@avg WHERE id=@id", con1);
+                    cmd1.Parameters.AddWithValue("@nEx", noOfExam);
+                    cmd1.Parameters.AddWithValue("@tM", totalMark);
+                    cmd1.Parameters.AddWithValue("@avg", avg);
+                    cmd1.Parameters.AddWithValue("@id", ID);
+                    cmd1.ExecuteNonQuery(); // FIX: was cmd1.ExecuteReader()
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Response.Write("<script>alert('You are not login!');</script>");
+                Response.Write("<script>console.error('Stats update error: " + ex.Message.Replace("'", "") + "');</script>");
             }
+
+            // Show question results (from session)
+            if (Session["_qs1"] != null) qs1.Text = Session["_qs1"].ToString();
+            if (Session["_qs2"] != null) qs2.Text = Session["_qs2"].ToString();
+            if (Session["_qs3"] != null) qs3.Text = Session["_qs3"].ToString();
+            if (Session["_qs4"] != null) qs4.Text = Session["_qs4"].ToString();
+            if (Session["_qs5"] != null) qs5.Text = Session["_qs5"].ToString();
+
+            if (Session["_tag1"] != null) tag1.Text = "(" + Session["_tag1"].ToString() + ")";
+            if (Session["_tag2"] != null) tag2.Text = "(" + Session["_tag2"].ToString() + ")";
+            if (Session["_tag3"] != null) tag3.Text = "(" + Session["_tag3"].ToString() + ")";
+            if (Session["_tag4"] != null) tag4.Text = "(" + Session["_tag4"].ToString() + ")";
+            if (Session["_tag5"] != null) tag5.Text = "(" + Session["_tag5"].ToString() + ")";
+
+            if (Session["_ans1"] != null) ans1.Text = Session["_ans1"].ToString();
+            if (Session["_ans2"] != null) ans2.Text = Session["_ans2"].ToString();
+            if (Session["_ans3"] != null) ans3.Text = Session["_ans3"].ToString();
+            if (Session["_ans4"] != null) ans4.Text = Session["_ans4"].ToString();
+            if (Session["_ans5"] != null) ans5.Text = Session["_ans5"].ToString();
         }
 
-        protected void homeB_Click(object sender, EventArgs e)
-        {
-            Response.Redirect("Dashboard.aspx");
-        }
-
-        protected void profileB_Click(object sender, EventArgs e)
-        {
-            Response.Redirect("UserProfile.aspx");
-        }
-
-        protected void LeaderboardB_Click(object sender, EventArgs e)
-        {
-            Response.Redirect("Leaderboard.aspx");
-        }
-
-        protected void logoutB_Click(object sender, EventArgs e)
-        {
-            Response.Redirect("LoginPage.aspx");
-        }
+        protected void homeB_Click(object sender, EventArgs e) { Response.Redirect("Dashboard.aspx"); }
+        protected void profileB_Click(object sender, EventArgs e) { Response.Redirect("UserProfile.aspx"); }
+        protected void LeaderboardB_Click(object sender, EventArgs e) { Response.Redirect("Leaderboard.aspx"); }
+        protected void logoutB_Click(object sender, EventArgs e) { Response.Redirect("LoginPage.aspx"); }
     }
 }
